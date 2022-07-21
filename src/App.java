@@ -10,48 +10,31 @@ import java.util.Map;
 public class App {
     
     public static void main(String[] args) throws Exception {
-        
-        String json = ObterFilmesJSON();
-        
-        List<Filme> listaFilmes = ConverterJSONEmListaFilme(json);
+     
+        //var extrator = new ExtratorDeConteudoDaNasa();
+        //var url = "https://api.mocki.io/v2/549a5d8b/NASA-APOD-JamesWebbSpaceTelescope";
 
-        System.out.println(listaFilmes.size());
+        var extrator = new ExtratorDeConteudoDoIMDB();
+        var url = "https://mocki.io/v1/9a7c1ca9-29b4-4eb3-8306-1adb9d159060";
 
-    }
-
-    private static String ObterFilmesJSON(){
-
-        URI urlApi = URI.create("https://api.mocki.io/v2/549a5d8b");
+        System.out.println("Obter filmes JSON");
         
-        var client = HttpClient.newHttpClient();
-        var request = HttpRequest.newBuilder(urlApi).GET().build();
+        var clienteHttp = new ClienteHttp();
+        String json = clienteHttp.buscaDados(url);
+
+        System.out.println("Converter JSON em lista de conteúdos");
         
-        try {
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());    
-            return response.body();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return "";
+        List<Conteudo> listaDeConteudo = extrator.extraiConteudos(json);
+
+        System.out.println("Total de conteúdos : " + listaDeConteudo.size());
+        var geradoraDeFigurinha = new GeradoraDeFigurinha();
+
+        System.out.println("Gerando as figurinhas");
+        for(Conteudo conteudo : listaDeConteudo){
+            geradoraDeFigurinha.cria(conteudo);
         }
 
+        System.out.println("Rotina finalizada");
     }
 
-    private static List<Filme> ConverterJSONEmListaFilme(String json){
-
-        var jsonParser = new JsonParser();
-        List<Map<String,String>> filmesJson = jsonParser.parse(json);
-
-        List<Filme> listaFilmes = new ArrayList<>();
-
-        for(Map<String, String> filmeJson : filmesJson){
-            listaFilmes.add(
-                new Filme(filmeJson.get("title"),
-                          filmeJson.get("image"),
-                          Float.parseFloat(filmeJson.get("imDbRating")))
-            );
-        }
-
-        return listaFilmes;
-
-    }
 }
